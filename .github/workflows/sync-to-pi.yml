@@ -1,0 +1,44 @@
+name: Sync to Raspberry Pi
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Sync code to Pi
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.PI_HOST }}
+        username: ${{ secrets.PI_USER }}
+        password: ${{ secrets.PI_PASSWORD }}
+        port: ${{ secrets.PI_PORT }}
+        script: |
+          # Create directory if it doesn't exist
+          mkdir -p ~/LightBox_2.0
+          cd ~/LightBox_2.0
+          
+          # If git repo exists, pull updates
+          if [ -d .git ]; then
+            echo "Updating existing repository..."
+            git pull origin main
+          else
+            # Clone fresh if not exists
+            echo "Cloning repository..."
+            cd ~
+            git clone https://github.com/fieldjoshua/LightBox_2.0.git
+            cd ~/LightBox_2.0
+          fi
+          
+          # Install/update dependencies
+          echo "Updating dependencies..."
+          pip3 install -r requirements-optimized.txt
+          
+          echo "Sync complete! Code is up to date."
+          echo "To run: cd ~/LightBox_2.0 && sudo python3 lightbox.py"

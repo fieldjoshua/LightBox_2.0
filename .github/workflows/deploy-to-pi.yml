@@ -1,0 +1,57 @@
+name: Deploy to Raspberry Pi
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to Raspberry Pi
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.PI_HOST }}
+        username: ${{ secrets.PI_USER }}
+        password: ${{ secrets.PI_PASSWORD }}
+        port: ${{ secrets.PI_PORT }}
+        script: |
+          # Backup existing installation if it exists
+          if [ -d ~/LightBox_2.0 ]; then
+            echo "Backing up existing installation..."
+            sudo systemctl stop lightbox 2>/dev/null || true
+            mv ~/LightBox_2.0 ~/LightBox_2.0.backup.$(date +%Y%m%d_%H%M%S)
+          fi
+          
+          # Clone the repository
+          echo "Cloning repository..."
+          git clone https://github.com/fieldjoshua/LightBox_2.0.git ~/LightBox_2.0
+          
+          # Enter directory
+          cd ~/LightBox_2.0
+          
+          # Install/update dependencies
+          echo "Installing dependencies..."
+          pip3 install -r requirements-optimized.txt
+          
+          # Run migration if settings exist
+          if [ -f ~/LightBox_2.0.backup.*/settings.json ]; then
+            echo "Migrating settings..."
+            cp ~/LightBox_2.0.backup.*/settings.json ./ 2>/dev/null || true
+          fi
+          
+          # Update systemd service if it exists
+          if [ -f /etc/systemd/system/lightbox.service ]; then
+            echo "Restarting service..."
+            sudo systemctl daemon-reload
+            sudo systemctl restart lightbox
+          else
+            echo "Service not installed. To run manually:"
+            echo "cd ~/LightBox_2.0 && sudo python3 lightbox.py"
+          fi
+          
+          echo "Deployment complete!"
