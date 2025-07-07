@@ -1,4 +1,4 @@
-name: Sync to Raspberry Pi
+name: Sync to Pi 3B+ (HUB75 Panel)
 
 on:
   push:
@@ -12,13 +12,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Sync code to Pi
+    - name: Sync code to Pi 3B+
       uses: appleboy/ssh-action@v0.1.5
       with:
-        host: ${{ secrets.PI_HOST }}
-        username: ${{ secrets.PI_USER }}
-        password: ${{ secrets.PI_PASSWORD }}
-        port: ${{ secrets.PI_PORT }}
+        host: ${{ secrets.PI_3B_HOST }}
+        username: ${{ secrets.PI_3B_USER }}
+        password: ${{ secrets.PI_3B_PASSWORD }}
+        port: ${{ secrets.PI_3B_PORT }}
         script: |
           # Create directory if it doesn't exist
           mkdir -p ~/LightBox_2.0
@@ -40,5 +40,12 @@ jobs:
           echo "Updating dependencies..."
           pip3 install -r requirements-optimized.txt
           
+          # Install HUB75 library if not present
+          if ! python3 -c "import rgbmatrix" 2>/dev/null; then
+            echo "Installing RGB Matrix library..."
+            sudo bash scripts/install_rgb_matrix.sh
+          fi
+          
           echo "Sync complete! Code is up to date."
+          echo "Platform: Pi 3B+ with HUB75 support"
           echo "To run: cd ~/LightBox_2.0 && sudo python3 lightbox.py"

@@ -8,10 +8,17 @@
 
 ### Required Secrets:
 
+#### For Pi Zero W (10x10 Matrix):
 - **PI_HOST**: `192.168.0.222`
 - **PI_USER**: `fieldjoshua`
-- **PI_PASSWORD**: Your Pi password
+- **PI_PASSWORD**: Your Pi Zero password
 - **PI_PORT**: `22` (default SSH port)
+
+#### For Pi 3B+ (HUB75 Panel):
+- **PI_3B_HOST**: `192.168.0.98`
+- **PI_3B_USER**: `joshuafield`
+- **PI_3B_PASSWORD**: Your Pi 3B+ password
+- **PI_3B_PORT**: `22` (default SSH port)
 
 ## Usage
 

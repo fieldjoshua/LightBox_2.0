@@ -1,0 +1,62 @@
+name: Sync to All Pis
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+jobs:
+  sync-pi-zero:
+    runs-on: ubuntu-latest
+    name: Sync to Pi Zero W
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Sync to Pi Zero W
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.PI_HOST }}
+        username: ${{ secrets.PI_USER }}
+        password: ${{ secrets.PI_PASSWORD }}
+        port: ${{ secrets.PI_PORT }}
+        script: |
+          mkdir -p ~/LightBox_2.0
+          cd ~/LightBox_2.0
+          if [ -d .git ]; then
+            git pull origin main
+          else
+            cd ~
+            git clone https://github.com/fieldjoshua/LightBox_2.0.git
+            cd ~/LightBox_2.0
+          fi
+          pip3 install -r requirements-optimized.txt
+          echo "✓ Pi Zero W synced (10x10 matrix)"
+
+  sync-pi-3b:
+    runs-on: ubuntu-latest
+    name: Sync to Pi 3B+
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Sync to Pi 3B+
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.PI_3B_HOST }}
+        username: ${{ secrets.PI_3B_USER }}
+        password: ${{ secrets.PI_3B_PASSWORD }}
+        port: ${{ secrets.PI_3B_PORT }}
+        script: |
+          mkdir -p ~/LightBox_2.0
+          cd ~/LightBox_2.0
+          if [ -d .git ]; then
+            git pull origin main
+          else
+            cd ~
+            git clone https://github.com/fieldjoshua/LightBox_2.0.git
+            cd ~/LightBox_2.0
+          fi
+          pip3 install -r requirements-optimized.txt
+          if ! python3 -c "import rgbmatrix" 2>/dev/null; then
+            sudo bash scripts/install_rgb_matrix.sh
+          fi
+          echo "✓ Pi 3B+ synced (HUB75 panel)"
