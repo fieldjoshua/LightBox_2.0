@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "lightbox"
+version = "1.0.0"
+description = "Optimized LED Matrix Controller"
+authors = ["LightBox Team"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+adafruit-circuitpython-neopixel = {version = "^6.0.0", optional = true}
+RPi-GPIO = {version = "^0.7.0", optional = true}
+flask = {version = "^2.0.0", optional = true}
+flask-cors = {version = "^3.0.0", optional = true}
+flask-socketio = {version = "^5.0.0", optional = true}
+psutil = {version = "^5.8.0", optional = true}
+pillow = {version = "^8.0.0", optional = true}
+numpy = {version = "^1.19.0", optional = true}
+eventlet = {version = "^0.30.0", optional = true}
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.0.0"
+
+[tool.poetry.extras]
+hardware = ["adafruit-circuitpython-neopixel", "RPi-GPIO"]
+web = ["flask", "flask-cors", "flask-socketio", "eventlet"]
+monitoring = ["psutil"]
+animations = ["numpy", "pillow"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"

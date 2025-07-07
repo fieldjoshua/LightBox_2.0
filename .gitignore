@@ -1,0 +1,78 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+ENV/
+env/
+
+# Virtual environments
+LightBox/venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Project specific
+settings.json
+*.log
+*.pid
+/tmp/
+lightbox_stats.json
+test_results*.json
+
+# Archives and backups
+*.tar.gz
+*.zip
+*.backup
+*_backup_*
+archive_deprecated/
+
+# Hardware specific
+*.dtbo
+
+# Dependencies
+node_modules/
+.npm
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Documentation builds
+docs/_build/
+site/
+
+# Temporary files
+*.tmp
+*.temp
+.aicheck/auto-iterate-*.log
+.aicheck/auto-iterate-*.md
+.aicheck/actions/*/supporting_docs/auto-iterate/

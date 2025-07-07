@@ -1,0 +1,8 @@
+{
+  "name": "lightbox",
+  "version": "1.0.0",
+  "description": "LightBox LED Matrix Controller",
+  "scripts": {
+    "test": "python3 -m pytest tests/"
+  }
+}

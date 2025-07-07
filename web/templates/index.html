@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LightBox Control</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>LightBox Control</h1>
+            <div id="status" class="status">
+                <span class="status-indicator"></span>
+                <span class="status-text">Connecting...</span>
+            </div>
+        </header>
+
+        <main>
+            <!-- Performance Metrics -->
+            <section class="metrics">
+                <h2>Performance</h2>
+                <div class="metric-grid">
+                    <div class="metric">
+                        <label>FPS</label>
+                        <span id="fps">--</span>
+                    </div>
+                    <div class="metric">
+                        <label>CPU</label>
+                        <span id="cpu">--%</span>
+                    </div>
+                    <div class="metric">
+                        <label>Memory</label>
+                        <span id="memory">-- MB</span>
+                    </div>
+                    <div class="metric">
+                        <label>Dropped</label>
+                        <span id="dropped">--%</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Controls -->
+            <section class="controls">
+                <h2>Controls</h2>
+                
+                <div class="control-group">
+                    <label for="brightness">Brightness</label>
+                    <input type="range" id="brightness" min="0" max="100" value="80">
+                    <span id="brightness-value">80%</span>
+                </div>
+
+                <div class="control-group">
+                    <label for="speed">Speed</label>
+                    <input type="range" id="speed" min="10" max="500" value="100">
+                    <span id="speed-value">1.0x</span>
+                </div>
+
+                <div class="control-group">
+                    <label for="animation">Animation</label>
+                    <select id="animation">
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="palette">Color Palette</label>
+                    <select id="palette">
+                        <option value="rainbow">Rainbow</option>
+                        <option value="fire">Fire</option>
+                        <option value="ocean">Ocean</option>
+                        <option value="forest">Forest</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Presets -->
+            <section class="presets">
+                <h2>Presets</h2>
+                <div class="preset-controls">
+                    <select id="preset-list">
+                        <option value="">Select preset...</option>
+                    </select>
+                    <button id="load-preset">Load</button>
+                    <button id="save-preset">Save</button>
+                    <button id="delete-preset">Delete</button>
+                </div>
+            </section>
+
+            <!-- Matrix Info -->
+            <section class="info">
+                <h2>System Info</h2>
+                <div id="system-info">
+                    <p>Matrix Type: <span id="matrix-type">--</span></p>
+                    <p>Platform: <span id="platform">--</span></p>
+                    <p>Target FPS: <span id="target-fps">--</span></p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
