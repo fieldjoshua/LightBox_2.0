@@ -17,7 +17,7 @@ jobs:
       with:
         host: ${{ secrets.PI_3B_HOST }}
         username: ${{ secrets.PI_3B_USER }}
-        password: ${{ secrets.PI_3B_PASSWORD }}
+        key: ${{ secrets.PI_3B_SSH_KEY }}
         port: ${{ secrets.PI_3B_PORT }}
         script: |
           # Create directory if it doesn't exist

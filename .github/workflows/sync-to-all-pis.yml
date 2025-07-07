@@ -16,7 +16,7 @@ jobs:
       with:
         host: ${{ secrets.PI_HOST }}
         username: ${{ secrets.PI_USER }}
-        password: ${{ secrets.PI_PASSWORD }}
+        key: ${{ secrets.PI_SSH_KEY }}
         port: ${{ secrets.PI_PORT }}
         script: |
           mkdir -p ~/LightBox_2.0
@@ -43,7 +43,7 @@ jobs:
       with:
         host: ${{ secrets.PI_3B_HOST }}
         username: ${{ secrets.PI_3B_USER }}
-        password: ${{ secrets.PI_3B_PASSWORD }}
+        key: ${{ secrets.PI_3B_SSH_KEY }}
         port: ${{ secrets.PI_3B_PORT }}
         script: |
           mkdir -p ~/LightBox_2.0
