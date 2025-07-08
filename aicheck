@@ -16,7 +16,7 @@
 set -e
 
 # AICheck version info
-AICHECK_VERSION="7.2.0"
+AICHECK_VERSION="7.4.0"
 GITHUB_REPO="fieldjoshua/AICheck_MCP"
 GITHUB_RAW_BASE="https://raw.githubusercontent.com/${GITHUB_REPO}/main"
 
@@ -30,22 +30,27 @@ function show_version() {
   echo -e "Version: ${GREEN}${AICHECK_VERSION}${NC}"
   echo -e "Repository: ${GITHUB_REPO}"
   echo -e ""
-  echo -e "${BRIGHT_BLURPLE}📋 Your Commands:${NC}"
-  echo -e "  ${GREEN}./aicheck status${NC}         - Show detailed status"
-  echo -e "  ${GREEN}./aicheck focus${NC}          - Check for scope creep"
-  echo -e "  ${GREEN}./aicheck stuck${NC}          - Get unstuck when confused"
-  echo -e "  ${GREEN}./aicheck deploy${NC}         - Pre-deployment validation"
-  echo -e "  ${GREEN}./aicheck auto-iterate${NC}   - Automated test-fix-test cycles"
-  echo -e "  ${GREEN}./aicheck new${NC}            - Create a new action"
-  echo -e "  ${GREEN}./aicheck ACTIVE${NC}         - Set the ACTIVE action"
-  echo -e "  ${GREEN}./aicheck complete${NC}       - Complete the ACTIVE action"
-  echo -e "  ${GREEN}./aicheck cleanup${NC}        - Optimize and fix compliance"
-  echo -e "  ${GREEN}./aicheck usage${NC}          - See AI usage and costs"
+  echo -e "${BRIGHT_BLURPLE}📋 Essential Commands:${NC}"
+  echo -e "  ${GREEN}./aicheck status${NC}         - Show current state"
+  echo -e "  ${GREEN}./aicheck new <name>${NC}     - Create new action"
+  echo -e "  ${GREEN}./aicheck complete${NC}       - Complete current action"
+  echo -e "  ${GREEN}./aicheck stuck${NC}          - Get help when confused"
+  echo -e "  ${GREEN}./aicheck cleanup${NC}        - Fix issues & optimize"
   echo -e ""
-  echo -e "${BRIGHT_BLURPLE}🤖 AI Editor Integration:${NC}"
-  echo -e "  ${GREEN}./aicheck mcp edit${NC}       - Setup MCP headers for AI coding"
-  echo -e "  ${GREEN}./aicheck edit claude <file>${NC} - Launch Claude with MCP"
-  echo -e "  ${GREEN}./aicheck edit cursor <file>${NC} - Launch Cursor with MCP"
+  echo -e "${BRIGHT_BLURPLE}📁 Action Management:${NC}"
+  echo -e "  ${GREEN}./aicheck action <cmd>${NC}   - Manage actions (new/set/complete/list/status)"
+  echo -e "  ${GREEN}./aicheck active <name>${NC}  - Quick: set active action"
+  echo -e ""
+  echo -e "${BRIGHT_BLURPLE}🤖 Development Tools:${NC}"
+  echo -e "  ${GREEN}./aicheck auto-iterate${NC}   - Automated test-fix cycles"
+  echo -e "  ${GREEN}./aicheck focus${NC}          - Check scope boundaries"
+  echo -e "  ${GREEN}./aicheck deploy${NC}         - Pre-deployment checks"
+  echo -e ""
+  echo -e "${BRIGHT_BLURPLE}🔧 MCP Integration:${NC}"
+  echo -e "  ${GREEN}./aicheck mcp setup${NC}      - Interactive MCP setup"
+  echo -e "  ${GREEN}./aicheck mcp validate${NC}   - Check MCP headers"
+  echo -e "  ${GREEN}./aicheck mcp hook${NC}       - Install git hook"
+  echo -e "  ${GREEN}./aicheck edit <editor> <file>${NC} - AI editor integration"
   echo -e ""
   echo -e "${YELLOW}💡 Only one action can be ACTIVE at a time.${NC}"
 }
@@ -195,49 +200,52 @@ function update_all() {
   fi
 }
 
-GREEN="\033[0;32m"
-NEON_BLURPLE="\033[38;5;99m"      # Neon blurple highlight color
-BRIGHT_BLURPLE="\033[38;5;135m"   # Bright blurple for text
-YELLOW="\033[0;33m"
-RED="\033[0;31m"
-CYAN="\033[0;36m"
-NC="\033[0m" # No Color
-BLUE="\033[0;34m"
-PURPLE="\033[0;35m"
+# Get the directory where aicheck is located
+AICHECK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+AICHECK_LIB="$AICHECK_DIR/aicheck-lib"
 
-# Function to validate single active action principle
-function validate_single_active_action() {
-  # Only run for commands that need validation
-  local cmd=${1:-}
-  case "$cmd" in
-    "status"|"focus"|"deploy"|"complete"|"auto-iterate"|"ACTIVE"|"new")
-      # These commands need validation
-      ;;
-    *)
-      # Skip validation for other commands
-      return 0
-      ;;
-  esac
-  
-  # Count active actions
-  local index_active=$(grep -c "| .* | .* | ActiveAction | .* | .* |" .aicheck/actions_index.md 2>/dev/null || echo "0")
-  local current=$(cat .aicheck/current_action 2>/dev/null || echo "None")
-  
-  if [ "$index_active" -gt 1 ]; then
-    echo -e "${RED}⚠ ERROR: Multiple active actions detected!${NC}"
-    echo -e "${YELLOW}AICheck requires exactly ONE active action at a time.${NC}"
-    echo -e "${CYAN}Run './aicheck cleanup' to fix this issue.${NC}"
-    echo ""
-    return 1
-  elif [ "$index_active" -eq 0 ] && [ "$current" != "None" ] && [ "$current" != "" ]; then
-    echo -e "${YELLOW}⚠ WARNING: Inconsistent state detected${NC}"
-    echo -e "${CYAN}Current action is '$current' but not marked active in index.${NC}"
-    echo -e "${CYAN}Run './aicheck cleanup' to fix this issue.${NC}"
-    echo ""
-    return 1
-  fi
-  return 0
-}
+# Source library modules
+if [ -d "$AICHECK_LIB" ]; then
+    # UI modules
+    source "$AICHECK_LIB/ui/colors.sh"
+    source "$AICHECK_LIB/ui/output.sh"
+    
+    # Core modules
+    source "$AICHECK_LIB/core/errors.sh"
+    source "$AICHECK_LIB/core/state.sh"
+    
+    # Validation modules
+    source "$AICHECK_LIB/validation/input.sh"
+    source "$AICHECK_LIB/validation/actions.sh"
+    
+    # Detection modules
+    source "$AICHECK_LIB/detection/environment.sh"
+    
+    # Action management
+    source "$AICHECK_LIB/actions/management.sh"
+    
+    # MCP integration
+    source "$AICHECK_LIB/mcp/integration.sh"
+    
+    # Git operations
+    source "$AICHECK_LIB/git/operations.sh"
+else
+    # Fallback to inline definitions if modules not found
+    GREEN="\033[0;32m"
+    NEON_BLURPLE="\033[38;5;99m"      # Neon blurple highlight color
+    BRIGHT_BLURPLE="\033[38;5;135m"   # Bright blurple for text
+    YELLOW="\033[0;33m"
+    RED="\033[0;31m"
+    CYAN="\033[0;36m"
+    NC="\033[0m" # No Color
+    BLUE="\033[0;34m"
+    PURPLE="\033[0;35m"
+    GRAY="\033[0;90m" # Neon purple-gray
+    
+    echo -e "${YELLOW}Warning: aicheck-lib modules not found. Using inline definitions.${NC}" >&2
+fi
+
+# validate_single_active_action is now provided by validation/actions.sh module
 
 # Function to automatically detect context pollution
 function detect_context_pollution() {
@@ -269,7 +277,7 @@ function detect_context_pollution() {
   
   # Check for uncommitted changes across multiple directories
   if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    local changed_dirs=$(git status --porcelain 2>/dev/null | awk '{print $2}' | xargs dirname | sort -u | wc -l | tr -d ' ')
+    local changed_dirs=$(git status --porcelain 2>/dev/null | awk '{print $2}' | while read -r f; do dirname "$f"; done | sort -u | wc -l | tr -d ' ')
     if [ "$changed_dirs" -gt 3 ]; then
       pollution_score=$((pollution_score + 15))
       warnings+=("Changes scattered across $changed_dirs directories")
@@ -421,7 +429,7 @@ fi)
 
 ## Dependencies
 
-$(if [ -f "documentation/dependencies/dependency_index.md" ]; then
+$(if [ -f "documentation/dependencies/dependency_index.md" ] && [ "$current_action" != "None" ]; then
   grep "$current_action" documentation/dependencies/dependency_index.md || echo "No dependencies found"
 else
   echo "No dependency index found"
@@ -1012,7 +1020,10 @@ function enforce_action_boundaries() {
   
   # Check for excessive new dependencies
   if [ -f "documentation/dependencies/dependency_index.md" ]; then
-    local recent_deps=$(grep "$(date +"%Y-%m-%d")" documentation/dependencies/dependency_index.md | grep "$current_action" | wc -l | tr -d ' ')
+    local recent_deps=0
+    if [ "$current_action" != "None" ] && [ -f "documentation/dependencies/dependency_index.md" ]; then
+      recent_deps=$(grep "$(date +"%Y-%m-%d")" documentation/dependencies/dependency_index.md | grep "$current_action" | wc -l | tr -d ' ')
+    fi
     if [ "$recent_deps" -gt 3 ]; then
       scope_warnings+=("$recent_deps new dependencies added today")
     fi
@@ -1338,7 +1349,7 @@ function set_active_action() {
   sed -i "" "s/\*Last Updated: .*\*/\*Last Updated: $(date +"%Y-%m-%d")\*/" .aicheck/actions_index.md
   
   # Verify enforcement worked
-  local active_count=$(grep -c "| .* | .* | Active\(Action\)\? | .* | .* |" .aicheck/actions_index.md 2>/dev/null || echo "0")
+  local active_count=$(grep -c "| .* | .* | Active\(Action\)\? | .* | .* |" .aicheck/actions_index.md 2>/dev/null | tr -d '\n' || echo "0")
   if [ "$active_count" -ne 1 ]; then
     echo -e "${RED}WARNING: Multiple active actions detected!${NC}"
     echo -e "${YELLOW}This violates AICheck single-action principle${NC}"
@@ -1348,60 +1359,7 @@ function set_active_action() {
   echo -e "${CYAN}  All other actions marked as 'In Progress' or 'Not Started'${NC}"
 }
 
-# Function to detect project type and available tools
-function detect_project_environment() {
-  local project_info=()
-  
-  # Python detection
-  if [ -f "pyproject.toml" ]; then
-    project_info+=("python-poetry")
-    [ -f "poetry.lock" ] && project_info+=("poetry-lock")
-  elif [ -f "requirements.txt" ] || [ -f "requirements-dev.txt" ]; then
-    project_info+=("python-pip")
-  elif [ -f "setup.py" ] || [ -f "setup.cfg" ]; then
-    project_info+=("python-setuptools")
-  fi
-  
-  # Node.js detection
-  if [ -f "package.json" ]; then
-    project_info+=("node")
-    [ -f "package-lock.json" ] && project_info+=("npm-lock")
-    [ -f "yarn.lock" ] && project_info+=("yarn-lock")
-    [ -f "pnpm-lock.yaml" ] && project_info+=("pnpm-lock")
-  fi
-  
-  # Build system detection
-  [ -f "Makefile" ] && project_info+=("make")
-  [ -f "Rakefile" ] && project_info+=("rake")
-  [ -f "build.gradle" ] || [ -f "build.gradle.kts" ] && project_info+=("gradle")
-  [ -f "pom.xml" ] && project_info+=("maven")
-  
-  # Testing framework detection
-  [ -f "pytest.ini" ] || [ -f ".pytest.ini" ] || [ -f "setup.cfg" ] && grep -q "pytest" setup.cfg 2>/dev/null && project_info+=("pytest")
-  [ -f "jest.config.js" ] || [ -f "jest.config.ts" ] && project_info+=("jest")
-  [ -d "tests" ] || [ -d "test" ] || [ -d "__tests__" ] && project_info+=("tests-dir")
-  
-  # Linting/formatting detection
-  [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ] || [ -f ".eslintrc.yml" ] && project_info+=("eslint")
-  [ -f ".prettierrc" ] || [ -f ".prettierrc.js" ] || [ -f ".prettierrc.json" ] && project_info+=("prettier")
-  [ -f ".flake8" ] || [ -f "setup.cfg" ] && grep -q "flake8" setup.cfg 2>/dev/null && project_info+=("flake8")
-  [ -f "pyproject.toml" ] && grep -q "black" pyproject.toml 2>/dev/null && project_info+=("black")
-  [ -f "pyproject.toml" ] && grep -q "ruff" pyproject.toml 2>/dev/null && project_info+=("ruff")
-  
-  # Type checking detection
-  [ -f "mypy.ini" ] || [ -f ".mypy.ini" ] || ([ -f "pyproject.toml" ] && grep -q "mypy" pyproject.toml 2>/dev/null) && project_info+=("mypy")
-  [ -f "tsconfig.json" ] && project_info+=("typescript")
-  
-  # CI/CD detection
-  [ -f ".github/workflows/"*.yml ] || [ -f ".github/workflows/"*.yaml ] && project_info+=("github-actions")
-  [ -f ".gitlab-ci.yml" ] && project_info+=("gitlab-ci")
-  [ -f ".circleci/config.yml" ] && project_info+=("circleci")
-  
-  # Container detection
-  [ -f "Dockerfile" ] || [ -f "docker-compose.yml" ] || [ -f "docker-compose.yaml" ] && project_info+=("docker")
-  
-  echo "${project_info[@]}"
-}
+# detect_project_environment is now provided by detection/environment.sh module
 
 # Function to read AICheck configuration
 function read_aicheck_config() {
@@ -1665,7 +1623,7 @@ function cleanup_and_optimize() {
     validate_action_completeness
     
     # Clean up multiple active actions
-    local active_count=$(grep -c "| .* | .* | Active\(Action\)\? | .* | .* |" .aicheck/actions_index.md 2>/dev/null || echo "0")
+    local active_count=$(grep -c "| .* | .* | Active\(Action\)\? | .* | .* |" .aicheck/actions_index.md 2>/dev/null | tr -d '\n' || echo "0")
     if [ "$active_count" -gt 1 ]; then
       echo -e "\n${YELLOW}⚠ Multiple active actions detected ($active_count)${NC}"
       echo -e "${RED}This violates AICheck's single-action principle!${NC}"
@@ -1799,7 +1757,7 @@ function fix_multiple_active_actions() {
   sed -i "" "s/\*Last Updated: .*\*/\*Last Updated: $(date +"%Y-%m-%d")\*/" .aicheck/actions_index.md
   
   # Final verification
-  local index_active=$(grep -c "| .* | .* | ActiveAction | .* | .* |" .aicheck/actions_index.md 2>/dev/null || echo "0")
+  local index_active=$(grep -c "| .* | .* | ActiveAction | .* | .* |" .aicheck/actions_index.md 2>/dev/null | tr -d '\n' || echo "0")
   local status_active=$(find .aicheck/actions -name "status.txt" -exec grep -l "ActiveAction" {} \; 2>/dev/null | wc -l | tr -d ' ')
   local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
   
@@ -2116,10 +2074,16 @@ function show_status() {
       
       # Show dependencies
       if [ -f "documentation/dependencies/dependency_index.md" ]; then
-        local deps=$(grep -c "$current_action" documentation/dependencies/dependency_index.md || echo "0")
+        local deps=0
+        if [ "$current_action" != "None" ]; then
+          deps=$(grep -c "$current_action" documentation/dependencies/dependency_index.md 2>/dev/null | tr -d '\n' || echo "0")
+        fi
+        deps=$(echo "$deps" | tr -d '\n' | head -1)  # Clean up any extra lines
         if [ "$deps" -gt "0" ]; then
           echo -e "\nDependencies for $current_action:"
-          grep "$current_action" documentation/dependencies/dependency_index.md
+          if [ "$current_action" != "None" ]; then
+            grep "$current_action" documentation/dependencies/dependency_index.md
+          fi
         fi
       fi
     else
@@ -2177,6 +2141,71 @@ function show_status() {
     else
       echo -e "${YELLOW}⚠ Potential scope creep detected - run './aicheck context check' for details${NC}"
     fi
+  fi
+}
+
+# Show detailed action status
+function show_action_detailed_status() {
+  if [ ! -f ".aicheck/current_action" ]; then
+    echo -e "${RED}No action system initialized${NC}"
+    return 1
+  fi
+  
+  local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+  
+  if [ "$current_action" = "None" ]; then
+    echo -e "${YELLOW}No active action${NC}"
+    echo -e "Use ${GREEN}./aicheck action new <name>${NC} to create one"
+    return 0
+  fi
+  
+  echo -e "${BRIGHT_BLURPLE}Detailed Action Status: $current_action${NC}"
+  echo -e "${BRIGHT_BLURPLE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  
+  # Basic info
+  local action_dir=".aicheck/actions/$(echo "$current_action" | tr '[:upper:]' '[:lower:]')"
+  local status_file="$action_dir/status.txt"
+  local plan_file="$action_dir/$(echo "$current_action" | tr '[:upper:]' '[:lower:]')-plan.md"
+  
+  if [ -f "$status_file" ]; then
+    echo -e "Status: ${GREEN}$(cat "$status_file")${NC}"
+  fi
+  
+  # Progress from actions_index.md
+  if [ -f ".aicheck/actions_index.md" ]; then
+    local progress=$(grep "| $current_action |" .aicheck/actions_index.md | awk -F'|' '{print $5}' | tr -d ' ')
+    echo -e "Progress: ${GREEN}${progress:-0%}${NC}"
+  fi
+  
+  # Files changed
+  if [ -d "$action_dir" ]; then
+    local file_count=$(find "$action_dir" -type f | wc -l | tr -d ' ')
+    echo -e "Action files: ${CYAN}$file_count${NC}"
+  fi
+  
+  # Dependencies
+  if [ -f "documentation/dependencies/dependency_index.md" ] && [ "$current_action" != "None" ]; then
+    local deps=$(grep -c "$current_action" documentation/dependencies/dependency_index.md 2>/dev/null | tr -d '\n' || echo "0")
+    echo -e "Dependencies tracked: ${CYAN}$deps${NC}"
+  fi
+  
+  # Claude interactions
+  local interactions_dir="$action_dir/claude_interactions"
+  if [ -d "$interactions_dir" ]; then
+    local interaction_count=$(find "$interactions_dir" -name "*.md" | wc -l | tr -d ' ')
+    echo -e "Claude interactions: ${CYAN}$interaction_count${NC}"
+  fi
+  
+  # Show plan preview
+  if [ -f "$plan_file" ]; then
+    echo -e "\nPlan preview:"
+    grep -A 3 "## Purpose" "$plan_file" 2>/dev/null | head -4 | sed 's/^/  /'
+  fi
+  
+  # Boundary check
+  local boundary_issues=$(enforce_action_boundaries 2>&1 | grep -c "outside" | tr -d '\n' || echo "0")
+  if [ "$boundary_issues" -gt 0 ]; then
+    echo -e "\n${YELLOW}⚠ Scope creep detected - run './aicheck focus' for details${NC}"
   fi
 }
 
@@ -2251,7 +2280,7 @@ function handle_guardian() {
       
       # Check for blueprints
       if [ -f "$GUARDIAN_DIR/blueprints.json" ]; then
-        local blueprint_count=$(grep -c "entry_point" "$GUARDIAN_DIR/blueprints.json" 2>/dev/null || echo "0")
+        local blueprint_count=$(grep -c "entry_point" "$GUARDIAN_DIR/blueprints.json" 2>/dev/null | tr -d '\n' || echo "0")
         echo -e "\nCritical Paths: ${BLUE}$blueprint_count${NC}"
       fi
       
@@ -2309,7 +2338,7 @@ function handle_guardian() {
             # Check current action context
             if [ "$current_action" != "None" ] && [ -f ".aicheck/actions/${current_action,,}/$(echo $current_action | tr '[:upper:]' '[:lower:]')-plan.md" ]; then
               echo -e "\n${BLUE}Checking action plan...${NC}"
-              local in_plan=$(grep -c "$file" ".aicheck/actions/${current_action,,}/$(echo $current_action | tr '[:upper:]' '[:lower:]')-plan.md" 2>/dev/null || echo "0")
+              local in_plan=$(grep -c "$file" ".aicheck/actions/${current_action,,}/$(echo $current_action | tr '[:upper:]' '[:lower:]')-plan.md" 2>/dev/null | tr -d '\n' || echo "0")
               if [ "$in_plan" -gt 0 ]; then
                 echo -e "${GREEN}✓ File modification is part of current action plan${NC}"
               else
@@ -2366,7 +2395,7 @@ function handle_guardian() {
       local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
       if [ "$current_action" != "None" ]; then
         # Use AICheck's boundary checking
-        local boundary_check=$(enforce_action_boundaries 2>&1 | grep -c "outside.*action" || echo "0")
+        local boundary_check=$(enforce_action_boundaries 2>&1 | grep -c "outside.*action" | tr -d '\n' || echo "0")
         if [ "$boundary_check" -gt 0 ]; then
           echo -e "${RED}❌ Change may be outside current action boundaries${NC}"
         else
@@ -3391,6 +3420,15 @@ function get_mcp_template() {
       echo "${comment_prefix} Follow the approved plan and stay within action scope."
       ;;
   esac
+  
+  # Add compliance reminder for all types
+  echo "${comment_prefix}"
+  echo "${comment_prefix} IMPORTANT: Current active action is '$action_id'"
+  echo "${comment_prefix} If your work is not reflective of this active action, you must either:"
+  echo "${comment_prefix}   1. Edit the current action plan (requires approval)"
+  echo "${comment_prefix}   2. Create a new action (requires approval)"
+  echo "${comment_prefix}   3. Enter exec mode for temporary work (requires approval)"
+  echo "${comment_prefix} Use MCP tools to check current action and ensure compliance."
 }
 
 # Function to inject MCP header into file
@@ -3809,15 +3847,48 @@ function launch_ai_editor() {
 validate_single_active_action "$CMD"
 
 case "$CMD" in
+  "action")
+    # Consolidated action management
+    case "$1" in
+      "new")
+        create_action "$2"
+        ;;
+      "set"|"active")
+        set_active_action "$2"
+        ;;
+      "complete")
+        complete_action "$2"
+        ;;
+      "list")
+        if [ -f ".aicheck/actions_index.md" ]; then
+          echo -e "${BRIGHT_BLURPLE}All Actions:${NC}"
+          grep -E "^\|[^|]+\|" .aicheck/actions_index.md | grep -v "^| Action |" | grep -v "^|--" | awk -F'|' '{printf "  %-20s %s\n", $2, $4}'
+        else
+          echo -e "${YELLOW}No actions found${NC}"
+        fi
+        ;;
+      "status")
+        show_action_detailed_status
+        ;;
+      *)
+        echo -e "${BRIGHT_BLURPLE}Action Management:${NC}"
+        echo -e "  ${GREEN}./aicheck action new <name>${NC}      - Create new action"
+        echo -e "  ${GREEN}./aicheck action set <name>${NC}      - Set active action"
+        echo -e "  ${GREEN}./aicheck action complete${NC}        - Complete current action"
+        echo -e "  ${GREEN}./aicheck action list${NC}            - List all actions"
+        echo -e "  ${GREEN}./aicheck action status${NC}          - Detailed action status"
+        ;;
+    esac
+    ;;
   "new")
     # Shortcut for action new
     create_action "$1"
     ;;
-  "active"|"ACTIVE")
+  "active")
     # Shortcut for action set
     set_active_action "$1"
     ;;
-  "complete"|"Complete"|"COMPLETE")
+  "complete")
     # Shortcut for action complete
     complete_action "$1"
     ;;
@@ -3838,12 +3909,12 @@ case "$CMD" in
     echo -e "4. ${GREEN}./aicheck deploy${NC} - Pre-deployment check"
     echo -e ""
     echo -e "${PURPLE}Need to start fresh?${NC}"
-    echo -e "• ${GREEN}./aicheck new ActionName${NC} - Create new action"
-    echo -e "• ${GREEN}./aicheck ACTIVE ActionName${NC} - Switch to action"
+    echo -e "• ${GREEN}./aicheck new <name>${NC} - Create new action"
+    echo -e "• ${GREEN}./aicheck active <name>${NC} - Switch to action"
     ;;
   "focus")
     # Check for scope creep and compliance issues
-    check_compliance
+    enforce_action_boundaries
     ;;
   "cleanup")
     # Clean up and optimize
@@ -3857,19 +3928,19 @@ case "$CMD" in
     # Show AI usage and costs
     mcp__aicheck__aicheck_analyzeCosts 2>/dev/null || echo -e "${YELLOW}Usage tracking not available - MCP server not connected${NC}"
     ;;
-  "auto-iterate"|"iterate"|"auto")
+  "auto-iterate")
     # Auto-iterate mode: test, analyze, fix, repeat
     auto_iterate "$1" "$2"
     ;;
-  "version"|"--version")
+  "version")
     # Show version information
     show_version
     ;;
   "mcp")
     # MCP integration commands
     case "$1" in
-      "edit")
-        # Guided MCP onboarding
+      "setup")
+        # Guided MCP setup
         mcp_edit_onboarding
         ;;
       "validate")
@@ -3877,9 +3948,9 @@ case "$CMD" in
         shift
         validate_mcp_headers "$@"
         ;;
-      "install-hook")
+      "hook")
         # Install pre-commit hook
-        install_mcp_precommit_hook
+        install_smart_precommit_hook
         ;;
       "prompt")
         # Extract MCP prompt from file
@@ -3894,9 +3965,9 @@ case "$CMD" in
         echo -e "${BRIGHT_BLURPLE}AICheck MCP Integration${NC}"
         echo -e ""
         echo -e "${GREEN}Available MCP commands:${NC}"
-        echo -e "  ${GREEN}./aicheck mcp edit${NC}         - Guided MCP header setup"
-        echo -e "  ${GREEN}./aicheck mcp validate <files>${NC} - Validate MCP headers"
-        echo -e "  ${GREEN}./aicheck mcp install-hook${NC}  - Install pre-commit hook"
+        echo -e "  ${GREEN}./aicheck mcp setup${NC}        - Interactive MCP setup"
+        echo -e "  ${GREEN}./aicheck mcp validate${NC}     - Validate MCP headers"
+        echo -e "  ${GREEN}./aicheck mcp hook${NC}         - Install git hook"
         echo -e "  ${GREEN}./aicheck mcp prompt <file>${NC} - Extract MCP prompt"
         echo -e ""
         echo -e "${BLUE}Editor integration:${NC}"

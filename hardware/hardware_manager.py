@@ -39,7 +39,8 @@ class HardwareManager:
             
         try:
             from .buttons import ButtonController
-            self.buttons = ButtonController(self.config, self.conductor)
+            # ButtonController expects led_controller as parameter
+            self.buttons = ButtonController(self.conductor)
             logger.info("GPIO buttons initialized")
         except Exception as e:
             logger.warning(f"Buttons unavailable: {e}")

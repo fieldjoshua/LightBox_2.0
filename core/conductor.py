@@ -122,8 +122,26 @@ class Conductor:
     def _load_animations(self):
         """Load all available animation programs."""
         # Built-in cosmic animation
-        from ..animations.cosmic import animate as cosmic_animate
-        self.animations["cosmic"] = AnimationProgram("cosmic", cosmic_animate)
+        try:
+            # Try absolute import first
+            from animations.cosmic import animate as cosmic_animate
+            self.animations["cosmic"] = AnimationProgram("cosmic", cosmic_animate)
+        except ImportError:
+            try:
+                # Try relative import
+                from ..animations.cosmic import animate as cosmic_animate
+                self.animations["cosmic"] = AnimationProgram("cosmic", cosmic_animate)
+            except ImportError:
+                # Load from file as fallback
+                cosmic_path = Path(__file__).parent.parent / "animations" / "cosmic.py"
+                if cosmic_path.exists():
+                    spec = importlib.util.spec_from_file_location("cosmic", cosmic_path)
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+                    if hasattr(module, 'animate'):
+                        self.animations["cosmic"] = AnimationProgram("cosmic", module.animate)
+                else:
+                    logger.warning("Could not load built-in cosmic animation")
         
         # Load animations from scripts directory
         scripts_dirs = [
@@ -198,7 +216,6 @@ class Conductor:
         while self.running:
             try:
                 # Start frame timing
-                frame_start = time.perf_counter()
                 self.performance.frame_start()
                 
                 if not self._paused and self.current_animation:
@@ -217,7 +234,6 @@ class Conductor:
                 self._frame_limiter.limit()
                 
                 # Update performance metrics
-                frame_time = time.perf_counter() - frame_start
                 self.performance.frame_end()
                 
                 # Process hardware events
@@ -268,7 +284,7 @@ class Conductor:
         
         logger.info("Conductor stopped")
     
-    def _signal_handler(self, signum, frame):
+    def _signal_handler(self, signum, _frame):
         """Handle shutdown signals."""
         logger.info(f"Received signal {signum}")
         self.stop()
